@@ -11,6 +11,7 @@ const dataManager = getService('dataManager')
 const sharedAssetsLibraryService = getService('sharedAssetsLibrary')
 const myTemplatesService = getService('myTemplates')
 const documentManager = getService('document')
+const roleManager = getService('roleManager')
 const elementsStorage = getStorage('elements')
 const workspaceStorage = getStorage('workspace')
 const workspaceSettings = workspaceStorage.state('settings')
@@ -508,33 +509,36 @@ export default class AddTemplatePanel extends React.Component {
       transparentOverlay = <TransparentOverlayComponent disableNavBar parent='.vcv-layout' />
     }
 
-    const saveTemplate = this.state.isRemoveStateActive ? null : (
-      <div className='vcv-ui-form-dependency'>
-        <div className='vcv-ui-form-group'>
-          <form
-            className='vcv-ui-save-template-form'
-            onSubmit={this.handleSaveTemplate}
-            disabled={!!this.state.showSpinner}
-          >
-            <input
-              className='vcv-ui-form-input vcv-ui-editor-save-template-field'
-              type='text'
-              value={this.state.templateName}
-              onChange={this.handleChangeTemplateName}
+    let saveTemplate = null
+    if(!this.state.isRemoveStateActive && roleManager.can('templates', roleManager.defaultTrue())) {
+      saveTemplate = (
+        <div className='vcv-ui-form-dependency'>
+          <div className='vcv-ui-form-group'>
+            <form
+              className='vcv-ui-save-template-form'
+              onSubmit={this.handleSaveTemplate}
               disabled={!!this.state.showSpinner}
-              placeholder={enterTemplateNameText}
-            />
-            <button
-              className='vcv-ui-save-template-submit vcv-ui-editor-no-items-action'
-              type='submit'
-              title={saveTemplateText}
-              disabled={!!this.state.showSpinner}
-            >{saveTemplateText}
-            </button>
-          </form>
+            >
+              <input
+                className='vcv-ui-form-input vcv-ui-editor-save-template-field'
+                type='text'
+                value={this.state.templateName}
+                onChange={this.handleChangeTemplateName}
+                disabled={!!this.state.showSpinner}
+                placeholder={enterTemplateNameText}
+              />
+              <button
+                className='vcv-ui-save-template-submit vcv-ui-editor-no-items-action'
+                type='submit'
+                title={saveTemplateText}
+                disabled={!!this.state.showSpinner}
+              >{saveTemplateText}
+              </button>
+            </form>
+          </div>
         </div>
-      </div>
-    )
+      )
+    }
 
     return (
       <div className='vcv-ui-tree-view-content vcv-ui-add-template-content'>

@@ -114,7 +114,7 @@ class CurrentUser extends AccessFactory implements Helper
      */
     public function getCapRule($rule)
     {
-        $roleRule = $this->getStateKey() . '/' . $rule;
+        $roleRule = $this->getStateKey() . '_' . $rule;
 
         return current_user_can($roleRule);
     }
@@ -129,7 +129,7 @@ class CurrentUser extends AccessFactory implements Helper
      */
     public function setCapRule($rule, $value = true)
     {
-        $roleRule = $this->getStateKey() . '/' . $rule;
+        $roleRule = $this->getStateKey() . '_' . $rule;
 
         wp_get_current_user()->add_cap($roleRule, $value);
 

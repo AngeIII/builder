@@ -42,7 +42,7 @@ class Role implements Helper
     /**
      * @var string
      */
-    protected static $partNamePrefix = 'vcv:access:rules:';
+    protected static $partNamePrefix = 'vcv_access_rules__';
 
     /**
      * @var array
@@ -127,7 +127,7 @@ class Role implements Helper
     {
         $role = $this->getRole();
         $state = null;
-        if ($role && isset($role->capabilities, $role->capabilities[ $this->getStateKey() ])) {
+        if ($role && isset($role->capabilities[ $this->getStateKey() ])) {
             $state = $role->capabilities[ $this->getStateKey() ];
         }
 
@@ -170,15 +170,17 @@ class Role implements Helper
         if (null === $this->getRole()) {
             $this->setValidAccess(is_super_admin());
         } elseif ($this->getValidAccess()) {
-            //   // YES it is hard coded :)
-            //   if ('administrator' === $this->getRole()->name && 'settings' === $part
-            //       && ('vcv-roles-tab' === $rule
-            //           || 'vcv-license-tab' === $rule)
-            //   ) {
-            //       $this->setValidAccess(true);
-            //
-            //       return $this;
-            //  }
+            // Administrators have all access always
+            if ($this->getRole()->name === 'administrator') {
+                $this->setValidAccess(true);
+
+                return $this;
+            }
+            if ($this->getRole()->name === 'subscriber') {
+                $this->setValidAccess(false);
+
+                return $this;
+            }
             $rule = $this->updateMergedCaps($rule);
 
             if (true === $checkState) {
@@ -194,8 +196,6 @@ class Role implements Helper
             } else {
                 $return = $this->getCapRule($rule);
             }
-            //    $return = apply_filters('vcv:role:can:accessWith' . $part, $return, $this->getRole(), $rule);
-            //    $return = apply_filters('vcv:role:can:accessWith' . $part . ':' . $rule, $return, $this->getRole());
             $this->setValidAccess($return);
         }
 
@@ -242,7 +242,7 @@ class Role implements Helper
      */
     public function getCapRule($rule)
     {
-        $rule = $this->getStateKey() . '/' . $rule;
+        $rule = $this->getStateKey() . '_' . $rule;
 
         return $this->getRole() ? $this->getRole()->has_cap($rule) : false;
     }
@@ -258,7 +258,7 @@ class Role implements Helper
      */
     public function setCapRule($rule, $value = true)
     {
-        $roleRule = $this->getStateKey() . '/' . $rule;
+        $roleRule = $this->getStateKey() . '_' . $rule;
         $this->getRole() && $this->getRole()->add_cap($roleRule, $value);
 
         return $this;
@@ -272,19 +272,21 @@ class Role implements Helper
     {
         $role = $this->getRole();
         $caps = [];
+        // Administrator have all access always
+        $defaultAccess = array_fill_keys($this->getAvailableParts(), $this->getRole()->name === 'administrator');
         if ($role) {
             $role = apply_filters('vcv:role:getAllCaps:role', $role);
             if (isset($role->capabilities) && is_array($role->capabilities)) {
                 foreach ($role->capabilities as $key => $value) {
-                    if (preg_match('/^' . $this->getStateKey() . '\//', $key)) {
-                        $rule = preg_replace('/^' . $this->getStateKey() . '\//', '', $key);
+                    if (preg_match('/^' . self::$partNamePrefix . '/', $key)) {
+                        $rule = preg_replace('/^' . self::$partNamePrefix . '/', '', $key);
                         $caps[ $rule ] = $value;
                     }
                 }
             }
         }
 
-        return $caps;
+        return array_merge($defaultAccess, $caps);
     }
 
     /**
@@ -293,14 +295,11 @@ class Role implements Helper
      */
     public function getRole()
     {
-        if (!$this->role) {
-            if (!$this->getRoleName()) {
-                throw new \Exception('roleName for role_manager is not set, please use ->who(roleName) method to set!');
-            }
-            $this->role = get_role($this->getRoleName());
+        if (!$this->getRoleName()) {
+            throw new \Exception('roleName for role_manager is not set, please use ->who(roleName) method to set!');
         }
 
-        return $this->role;
+        return get_role($this->getRoleName());
     }
 
     /**
@@ -368,5 +367,24 @@ class Role implements Helper
     public function getMergedCaps()
     {
         return $this->mergedCaps;
+    }
+
+    public function getAvailableParts()
+    {
+        return [
+            'post_types',
+            'elements',
+            'element_presets',
+            'element_lock',
+            'element_remove',
+            'templates',
+            'settings_local_css',
+            'settings_global_css',
+            'settings_local_html',
+            'settings_global_html',
+            'settings_local_popup',
+            'settings_global_popup',
+            'hub_download',
+        ];
     }
 }

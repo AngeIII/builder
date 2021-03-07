@@ -82,6 +82,9 @@ class Controller extends Container implements Module
                     ) {
                         $postType = $requestHelper->input('post_type');
                     }
+                    if (!vchelper('AccessCurrentUser')->part('post_types')->can('create_' . $postType, false)->get()) {
+                        return false;
+                    }
                     $post = \get_default_post_to_edit($postType, true);
                     $sourceId = $post->ID;
                 } else {
@@ -95,8 +98,8 @@ class Controller extends Container implements Module
 
                 if (empty($content)) {
                     wp_die(
-                        '<h1>' . __('Cheatin&#8217; uh?', 'visualcomposer') . '</h1>' .
-                        '<p>' . __('Sorry, you are not allowed to create posts.', 'visualcomposer')
+                        '<h1>' . __('You need a higher level of permission.', 'visualcomposer') . '</h1>' .
+                        '<p>' . __('Sorry, you are not allowed to edit posts as this user.', 'visualcomposer')
                         . '</p>',
                         403
                     );
@@ -104,6 +107,13 @@ class Controller extends Container implements Module
 
                 /** @noinspection PhpInconsistentReturnPointsInspection */
                 return $this->terminate($content);
+            } else {
+                wp_die(
+                    '<h1>' . __('You need a higher level of permission.', 'visualcomposer') . '</h1>' .
+                    '<p>' . __('Sorry, you are not allowed to edit posts as this user.', 'visualcomposer')
+                    . '</p>',
+                    403
+                );
             }
         }
 

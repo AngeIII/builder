@@ -8,6 +8,7 @@ import DynamicElement from 'public/components/dynamicFields/dynamicElement'
 import { getAttributeType } from './tools'
 
 const { createKey } = vcCake.getService('utils')
+const roleManager = vcCake.getService('roleManager')
 const hubElementStorage = vcCake.getStorage('hubElements')
 const assetsStorage = vcCake.getStorage('assets')
 const elementSettingsStorage = vcCake.getStorage('elementSettings')
@@ -19,6 +20,14 @@ const hubElementsState = hubElementStorage.state('elements')
 export default class Element {
   constructor (data, dataSettings = null, cssSettings = null, API) {
     this.init(data, dataSettings, cssSettings, API)
+  }
+
+  hasAccessToElement(elementTag) {
+    if (roleManager.can('elements', roleManager.defaultTrue())) {
+      return true
+    }
+
+    return roleManager.can('elements_' + elementTag, roleManager.defaultTrue())
   }
 
   init (data, dataSettings = null, cssSettings = null, API) {
@@ -41,7 +50,7 @@ export default class Element {
     let element = elements ? elements[tag] : null
 
     if (!element) {
-      // vcCake.env('VCV_DEBUG') === true && console.warn(`Element ${tag} is not registered in system`, data)
+      vcCake.env('VCV_DEBUG') === true && console.warn(`Element ${tag} is not registered in system`, data)
       element = {
         settings: {
           metaDescription: '',
@@ -52,6 +61,9 @@ export default class Element {
       }
     }
 
+    if (metaIsElementLocked === false && !element.metaIsDefaultElement && !element.thirdParty) {
+      metaIsElementLocked = !this.hasAccessToElement(tag)
+    }
     const metaSettings = element.settings
 
     let settings = {}
@@ -99,6 +111,8 @@ export default class Element {
         cssSettings: cssSettings || {},
         metaElementAssets: metaElementAssets || {},
         metaIsElementLocked: metaIsElementLocked,
+        metaIsDefaultElement: element.metaIsDefaultElement,
+        thirdParty: element.thirdParty,
         getAttributeType: function (k) {
           return getAttributeType(k, this.settings)
         }

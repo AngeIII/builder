@@ -8,6 +8,7 @@ const workspaceStorage = getStorage('workspace')
 const elementsStorage = getStorage('elements')
 const workspaceSettings = workspaceStorage.state('settings')
 const documentManager = getService('document')
+const roleManager = getService('roleManager')
 const hubStorage = getStorage('hubAddons')
 const editorPopupStorage = getStorage('editorPopup')
 const hubAddonsStorage = getStorage('hubAddons')
@@ -312,15 +313,17 @@ export default class EditFormHeader extends React.Component {
 
     if (isGeneral) {
       const editFormSettingsText = localizations ? localizations.editFormSettingsText : 'Element Settings'
-      settingsControl = (
-        <span
-          className='vcv-ui-edit-form-header-control'
-          title={editFormSettingsText}
-          onClick={this.props.handleEditFormSettingsToggle}
-        >
-          <i className={editFormSettingsIconClasses} />
-        </span>
-      )
+      if (roleManager.can('element_presets', roleManager.defaultTrue())) {
+        settingsControl = (
+          <span
+            className='vcv-ui-edit-form-header-control'
+            title={editFormSettingsText}
+            onClick={this.props.handleEditFormSettingsToggle}
+          >
+            <i className={editFormSettingsIconClasses} />
+          </span>
+        )
+      }
     }
 
     const lockElementClasses = classNames({
@@ -330,8 +333,7 @@ export default class EditFormHeader extends React.Component {
     })
 
     let lockControl = null
-    const vcvIsUserAdmin = dataManager.get('vcvManageOptions')
-    if (vcvIsUserAdmin && isGeneral) {
+    if (roleManager.can('element_lock', roleManager.defaultAdmin()) && isGeneral) {
       const isAddonAvailable = hubStorage.state('addons').get() && hubStorage.state('addons').get().roleManager
       const lockElementText = localizations ? localizations.lockElementText : 'Lock Element'
       const lockClasses = classNames({

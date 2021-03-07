@@ -15,6 +15,12 @@ class EditorPostType implements Helper
     public function isEditorEnabled($postType)
     {
         global $post;
+        if ($postType === 'vcv_tutorials') {
+            return current_user_can('edit_vcv_tutorialss');
+        }
+        if (!vchelper('AccessCurrentUser')->part('post_types')->can('edit_' . $postType, false)->get()) {
+            return false;
+        }
         $backup = $post;
         $requestHelper = vchelper('Request');
         $postId = (int)$requestHelper->input('post', 0);

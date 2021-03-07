@@ -7,6 +7,7 @@ import PropTypes from 'prop-types'
 const workspaceStorage = getStorage('workspace')
 const elementsStorage = getStorage('elements')
 const documentManger = getService('document')
+const roleManager = getService('roleManager')
 const utils = getService('utils')
 const cook = getService('cook')
 const hubElementsService = getService('hubElements')
@@ -439,7 +440,7 @@ export default class TreeViewElement extends React.Component {
     if (!element) {
       return null
     }
-    const isElementLocked = env('VCV_ADDON_ROLE_MANAGER_ENABLED') && element.get('metaIsElementLocked') && !dataManager.get('vcvManageOptions')
+    const isElementLocked = env('VCV_ADDON_ROLE_MANAGER_ENABLED') && element.get('metaIsElementLocked') && !roleManager.can('element_lock', roleManager.defaultAdmin())
     const isDraggable = element.get('metaIsDraggable')
     const treeChildClasses = classNames({
       'vcv-ui-tree-layout-node-child': true,
@@ -592,7 +593,7 @@ export default class TreeViewElement extends React.Component {
     )
 
     let lockControl = null
-    const vcvIsUserAdmin = dataManager.get('vcvManageOptions')
+    const vcvIsUserAdmin = roleManager.can('element_lock', roleManager.defaultAdmin())
     const isGeneral = cookElement.relatedTo('General') || cookElement.relatedTo('RootElements')
     const isLocked = cookElement.get('metaIsElementLocked') && env('VCV_ADDON_ROLE_MANAGER_ENABLED')
 

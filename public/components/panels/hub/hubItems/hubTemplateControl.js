@@ -4,6 +4,7 @@ import { env, getService, getStorage } from 'vc-cake'
 import ElementControl from '../../addElement/lib/elementControl'
 
 const myTemplatesService = getService('myTemplates')
+const roleManager = getService('roleManager')
 const workspaceStorage = getStorage('workspace')
 const elementsStorage = getStorage('elements')
 const workspaceSettings = workspaceStorage.state('settings')
@@ -103,14 +104,14 @@ export default class HubTemplateControl extends ElementControl {
       'vcv-ui-item-add': true,
       'vcv-ui-item-add-hub': true,
       'vcv-ui-icon': true,
-      'vcv-ui-icon-download': elementState === 'inactive',
+      'vcv-ui-icon-download': roleManager.can('hub_download', roleManager.defaultTrue()) && elementState === 'inactive',
       'vcv-ui-wp-spinner-light': elementState === 'downloading' || this.state.showLoading,
       'vcv-ui-icon-lock-fill': lockIcon,
       'vcv-ui-icon-add': elementState === 'success' && !this.isHubInWpDashboard
     })
 
     const itemProps = {}
-
+    const overlayProps = {}
     let action = this.isHubInWpDashboard ? null : this.addTemplate
     if (elementState !== 'success') {
       if (lockIcon) {
@@ -118,11 +119,18 @@ export default class HubTemplateControl extends ElementControl {
         // Add action on whole item
         itemProps.onClick = this.props.onClickGoPremium.bind(this, 'template')
       } else {
-        action = this.downloadTemplate
+        if (!roleManager.can('hub_download', roleManager.defaultTrue())) {
+          action = null
+          overlayProps.style = {
+            cursor: 'not-allowed'
+          }
+        } else {
+          action = this.downloadTemplate
+        }
       }
     }
 
-    const overlayOutput = <span className={iconClasses} onClick={action} />
+    const overlayOutput = <span className={iconClasses} onClick={action} {...overlayProps} />
     let previewOutput = null
     let newBadge = null
     let premiumBadge = null
@@ -158,12 +166,11 @@ export default class HubTemplateControl extends ElementControl {
           onMouseEnter={this.handleMouseEnterShowPreview}
           onMouseLeave={this.handleMouseLeaveHidePreview}
           title={name}
-          {...itemProps}
         >
           {newBadge}
           <span className='vcv-ui-item-element-content'>
             <img className='vcv-ui-item-element-image' src={publicPathThumbnail} alt={name} />
-            <span className={itemOverlayClasses}>
+            <span className={itemOverlayClasses} {...itemProps}>
               {overlayOutput}
             </span>
           </span>

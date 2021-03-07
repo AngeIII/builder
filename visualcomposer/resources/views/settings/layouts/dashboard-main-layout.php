@@ -228,10 +228,10 @@ if (is_array($variables)) {
                                                 $activeClass = ' vcv-dashboard-sidebar-navigation-link--active';
                                             }
                                             $tabTitle = empty($tab['subTitle']) ? $tab['name'] : $tab['subTitle'];
+                                            $subMenuLink = '?page=' . esc_attr($tabKey);
+
                                             if ($menuKey === $parentSlug) {
-                                                $subMenuLink = 'javascript:void(0)';
-                                            } else {
-                                                $subMenuLink = '?page=' . esc_attr($tabKey);
+                                                $activeClass .= ' vcv-dashboard-sidebar-navigation-link--same-parent';
                                             }
                                             ?>
                                             <li class="vcv-dashboard-sidebar-navigation-menu-item">

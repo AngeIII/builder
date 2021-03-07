@@ -34,11 +34,7 @@ class SettingsController extends Container implements Module
     {
         /** @see \VisualComposer\Modules\Settings\SettingsController::saveSettings */
         $this->addFilter('vcv:ajax:settings:save:adminNonce', 'saveSettings');
-        /** @see \VisualComposer\Modules\Settings\SettingsController::saveNotice */
-        $this->wpAddAction(
-            'admin_notices',
-            'saveNotice'
-        );
+
         /** @see \VisualComposer\Modules\Settings\SettingsController::beforeRenderRedirect */
         $this->wpAddAction('admin_init', 'beforeRenderRedirect', 100);
     }
@@ -81,19 +77,6 @@ class SettingsController extends Container implements Module
         header('Status: 403 Forbidden');
         header('HTTP/1.1 403 Forbidden');
         exit;
-    }
-
-    /**
-     *
-     */
-    protected function saveNotice()
-    {
-        if (isset($_REQUEST['message']) && $_REQUEST['message'] === 'vcv-saved') {
-            echo sprintf(
-                '<div class="notice notice-success"><p>%s</p></div>',
-                __('Your settings are saved.', 'visualcomposer')
-            );
-        }
     }
 
     /**

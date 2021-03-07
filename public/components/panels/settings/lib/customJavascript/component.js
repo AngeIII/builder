@@ -3,7 +3,9 @@ import ScriptControl from './control'
 import HtmlEditor from './htmlEditor'
 import { getStorage, getService } from 'vc-cake'
 import Tooltip from '../../../../tooltip/tooltip'
+
 const dataManager = getService('dataManager')
+const roleManager = getService('roleManager')
 const settingsStorage = getStorage('settings')
 
 export default class CustomJavascript extends React.Component {
@@ -13,7 +15,7 @@ export default class CustomJavascript extends React.Component {
     super(props)
 
     this.state = {
-      activeIndex: 'localJs',
+      activeIndex: roleManager.can('settings_local_html', roleManager.defaultAdmin()) ? 'localJs' : 'globalJs',
       localJsHead: settingsStorage.state('localJsHead').get(),
       localJsFooter: settingsStorage.state('localJsFooter').get(),
       globalJsHead: settingsStorage.state('globalJsHead').get(),
@@ -31,18 +33,19 @@ export default class CustomJavascript extends React.Component {
 
   getButtons () {
     const allButtons = []
+    if (roleManager.can('settings_local_html', roleManager.defaultAdmin())) {
+      allButtons.push(
+        <ScriptControl
+          key='vcv-settings-custom-js-local'
+          title='Local JavaScript'
+          index='localJs'
+          active={this.state.activeIndex === 'localJs'}
+          changeActive={this.changeActiveButton}
+        />
+      )
+    }
 
-    allButtons.push(
-      <ScriptControl
-        key='vcv-settings-custom-js-local'
-        title='Local JavaScript'
-        index='localJs'
-        active={this.state.activeIndex === 'localJs'}
-        changeActive={this.changeActiveButton}
-      />
-    )
-
-    if (dataManager.get('vcvManageOptions')) {
+    if (roleManager.can('settings_global_html', roleManager.defaultAdmin())) {
       allButtons.push(
         <ScriptControl
           key='vcv-settings-custom-js-global'

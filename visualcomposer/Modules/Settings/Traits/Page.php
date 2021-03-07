@@ -24,7 +24,6 @@ trait Page
 
     /**
      * @return mixed
-     * @deprecated
      */
     public function getTemplatePath()
     {

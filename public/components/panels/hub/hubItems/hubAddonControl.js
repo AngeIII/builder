@@ -5,6 +5,7 @@ import { getStorage, getService } from 'vc-cake'
 const hubAddonsStorage = getStorage('hubAddons')
 const eventsStorage = getStorage('events')
 const dataManager = getService('dataManager')
+const roleManager = getService('roleManager')
 const localizations = dataManager.get('localizations')
 const editorPopupStorage = getStorage('editorPopup')
 const settingsStorage = getStorage('settings')
@@ -57,10 +58,18 @@ export default class HubAddonControl extends React.Component {
     const availableInPremiumText = localizations.availableInPremiumText || 'Available in Premium'
     let buttonText
 
+    const itemProps = {}
     let action = this.handleAddonClick
     if (elementState !== 'success') {
       if (!lockIcon) {
-        action = this.downloadAddon
+        if (!roleManager.can('hub_download', roleManager.defaultTrue())) {
+          itemProps.style = {
+            cursor: 'not-allowed'
+          }
+          action = null
+        } else {
+          action = this.downloadAddon
+        }
       }
     }
 
@@ -77,7 +86,7 @@ export default class HubAddonControl extends React.Component {
       'vcv-hub-addon-control--locked': elementState === 'success'
     })
 
-    let addonControl = <button className={buttonClasses} onClick={action}>{buttonText}</button>
+    let addonControl = <button className={buttonClasses} onClick={action} {...itemProps}>{buttonText}</button>
     if (elementState !== 'success' && lockIcon) {
       const utm = dataManager.get('utm')
       const buttonUrl = utm['editor-available-in-premium'].replace('{medium}', this.props.utmMedium)

@@ -69,6 +69,10 @@ class MenuController extends Container implements Module
                 'vcv_footers',
                 'vcv_sidebars',
             ];
+            if (!vchelper('AccessCurrentUser')->part('post_types')->can('create_' . $postType, false)->get()) {
+                echo $content;
+                return;
+            }
             if (
                 $editorPostTypeHelper->isEditorEnabled($postType)
                 && !in_array($postType, $postTypesList)
@@ -140,6 +144,9 @@ class MenuController extends Container implements Module
     ) {
         global $submenu;
         if ($editorPostType->isEditorEnabled($postType)) {
+            if (!vchelper('AccessCurrentUser')->part('post_types')->can('create_' . $postType, false)->get()) {
+                return;
+            }
             foreach ($linksData as $linkIndex => $link) {
                 $linkMatch = preg_match('/post-new.php(.*)?/', $link[2]);
                 if ($linkMatch) {

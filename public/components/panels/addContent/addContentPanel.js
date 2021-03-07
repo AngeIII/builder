@@ -8,6 +8,7 @@ import vcCake from 'vc-cake'
 import classNames from 'classnames'
 
 const dataManager = vcCake.getService('dataManager')
+const roleManager = vcCake.getService('roleManager')
 const workspaceStorage = vcCake.getStorage('workspace')
 const hubElementsStorage = vcCake.getStorage('hubElements')
 const hubTemplatesStorage = vcCake.getStorage('hubTemplates')
@@ -16,8 +17,6 @@ const workspaceContentState = workspaceStorage.state('content')
 
 export default class AddContentPanel extends React.Component {
   static localizations = dataManager.get('localizations')
-
-  iframe = document.getElementById('vcv-editor-iframe') && document.getElementById('vcv-editor-iframe').contentWindow.document
 
   constructor (props) {
     super(props)
@@ -80,7 +79,7 @@ export default class AddContentPanel extends React.Component {
   }
 
   scrollToElementInsideFrame (id, isElement) {
-    const editorEl = this.iframe.querySelector(`#el-${id}`)
+    const editorEl = vcCake.env('iframe').document.querySelector(`#el-${id}`)
     if (!editorEl) {
       return
     }
@@ -150,7 +149,8 @@ export default class AddContentPanel extends React.Component {
     })
 
     let settingsControl
-    if (dataManager.get('vcvManageOptions') || hubElementsStorage.state('elementPresets').get().length || Object.keys(hubTemplatesStorage.state('templates').get()).length) {
+    let hasAccess = roleManager.can('element_remove', roleManager.defaultAdmin()) || roleManager.can('templates', roleManager.defaultTrue())
+    if (hasAccess && (hubElementsStorage.state('elementPresets').get().length || Object.keys(hubTemplatesStorage.state('templates').get()).length)) {
       settingsControl = (
         <span className={settingsClasses} title={settingsTitle} onClick={this.handleSettingsClick}>
           <i className='vcv-ui-icon vcv-ui-icon-cog' />

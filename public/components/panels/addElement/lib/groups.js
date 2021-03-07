@@ -8,6 +8,7 @@ import ElementsGroup from './elementsGroup'
 
 const dataManager = vcCake.getService('dataManager')
 const hubElementsService = vcCake.getService('hubElements')
+const roleManager = vcCake.getService('roleManager')
 const sharedAssetsLibraryService = vcCake.getService('sharedAssetsLibrary')
 const workspaceStorage = vcCake.getStorage('workspace')
 const hubElementsStorage = vcCake.getStorage('hubElements')
@@ -102,7 +103,14 @@ export default class Groups extends React.Component {
     }
 
     if (!Groups.allElements.length || Groups.parentElementTag !== parent.tag) {
-      const allElements = hubElementsService.getSortedElements()
+      let allElements = hubElementsService.getSortedElements()
+      allElements = allElements.filter((element) => {
+        console.log(element)
+        if (!element.metaIsDefaultElement && !element.thirdParty && !this.hasAccessToElement(element.tag)) {
+          return false
+        }
+        return element
+      })
       const hubElements = hubElementsStorage.state('elements').get()
       Groups.allElements = allElements
 
@@ -110,6 +118,10 @@ export default class Groups extends React.Component {
         if (!hubElements[elementPreset.presetData.tag] || hubElements[elementPreset.presetData.tag].metaIsElementRemoved) {
           return false
         }
+        // TODO: Check if presetData.tag is defaultElement or thirdParty element
+        // if (!this.hasAccessToElement(elementPreset.presetData.tag)) {
+        //   return false
+        // }
         const cookElement = cook.get(elementPreset.presetData)
         const element = cookElement.toJS()
         element.usageCount = elementPreset.usageCount
@@ -263,6 +275,14 @@ export default class Groups extends React.Component {
         </div>
       </div>
     )
+  }
+
+  hasAccessToElement (elementTag) {
+    if (roleManager.can('elements', roleManager.defaultTrue())) {
+      return true
+    }
+
+    return roleManager.can('elements_' + elementTag, roleManager.defaultTrue())
   }
 
   getElementControl (elementData) {

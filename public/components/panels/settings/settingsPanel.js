@@ -11,6 +11,7 @@ import PanelNavigation from '../panelNavigation'
 import Scrollbar from '../../scrollbar/scrollbar'
 
 const dataManager = getService('dataManager')
+const roleManager = getService('roleManager')
 const localizations = dataManager.get('localizations')
 const customCSSText = localizations ? localizations.customCSS : 'Custom CSS'
 const settingsText = localizations ? localizations.pageSettings : 'Page Settings'
@@ -26,14 +27,20 @@ const controls = {
     type: 'pageSettings',
     title: settingsText,
     content: <PageSettings />
-  },
-  customCss: {
+  }
+}
+
+if (roleManager.can('settings_local_css', roleManager.defaultAdmin()) || roleManager.can('settings_global_css', roleManager.defaultAdmin())) {
+  controls.customCss = {
     index: 1,
     type: 'customCss',
     title: customCSSText,
     content: <CustomStyles />
-  },
-  customJs: {
+  }
+}
+
+if (roleManager.can('settings_local_html', roleManager.defaultAdmin()) || roleManager.can('settings_global_html', roleManager.defaultAdmin())) {
+  controls.customJs = {
     index: 2,
     type: 'customJs',
     title: customJSText,
@@ -44,15 +51,17 @@ const controls = {
 const editorType = dataManager.get('editorType')
 const allowedPostTypes = ['default', 'vcv_archives', 'vcv_tutorials']
 if (allowedPostTypes.indexOf(editorType) > -1) {
-  controls.popup = {
-    index: 3,
-    type: 'popup',
-    title: popupText,
-    content: <Popup />
+  if (roleManager.can('settings_local_popup', roleManager.defaultTrue())) {
+    controls.popup = {
+      index: 3,
+      type: 'popup',
+      title: popupText,
+      content: <Popup />
+    }
   }
 }
 
-if (dataManager.get('vcvManageOptions')) {
+if (roleManager.can('element_lock', roleManager.defaultAdmin())) {
   controls.elementsLock = {
     index: 4,
     type: 'elementsLock',

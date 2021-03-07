@@ -3,27 +3,32 @@ import StyleControl from './control'
 import StyleEditor from './editor'
 import { setData, getStorage, getService } from 'vc-cake'
 import Tooltip from '../../../../tooltip/tooltip'
+
 const settingsStorage = getStorage('settings')
 const dataManager = getService('dataManager')
+const roleManager = getService('roleManager')
 
 export default class CustomStyles extends React.Component {
   static localizations = dataManager.get('localizations')
-  styleData = [
-    {
-      buttonTitle: CustomStyles.localizations ? CustomStyles.localizations.localCSS : 'Local CSS',
-      index: 1,
-      name: 'local',
-      settingsStorageState: 'customCss'
-    }
-  ]
 
   constructor (props) {
     super(props)
-    if (dataManager.get('vcvManageOptions')) {
+    this.styleData = []
+    if (roleManager.can('settings_local_css', roleManager.defaultAdmin())) {
+      this.styleData.push({
+          buttonTitle: CustomStyles.localizations ? CustomStyles.localizations.localCSS : 'Local CSS',
+          index: this.styleData.length + 1,
+          name: 'local',
+          settingsStorageState: 'customCss'
+        }
+      )
+    }
+
+    if (roleManager.can('settings_global_css', roleManager.defaultAdmin())) {
       this.styleData.push(
         {
           buttonTitle: CustomStyles.localizations ? CustomStyles.localizations.globalCSS : 'Global CSS',
-          index: 2,
+          index: this.styleData.length + 1,
           name: 'global',
           settingsStorageState: 'globalCss'
         })

@@ -5,6 +5,7 @@ const cook = getService('cook')
 const documentManager = getService('document')
 const workspaceStorage = getStorage('workspace')
 const dataManager = getService('dataManager')
+const roleManager = getService('roleManager')
 
 const iframe = document.getElementById('vcv-editor-iframe')
 
@@ -57,7 +58,7 @@ export function AppendControl (props) {
     return null
   }
 
-  const isParentElementLocked = containerElement.get('metaIsElementLocked')
+  const isParentElementLocked = containerElement.get('metaIsElementLocked') && !roleManager.can('element_lock', roleManager.defaultAdmin())
   if (isParentElementLocked) {
     return null
   }

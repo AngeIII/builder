@@ -5,6 +5,7 @@ import { getService, getStorage } from 'vc-cake'
 
 const settingsStorage = getStorage('settings')
 const dataManager = getService('dataManager')
+const roleManager = getService('roleManager')
 
 export default class HubTemplateControl extends React.Component {
   static propTypes = {
@@ -80,14 +81,21 @@ export default class HubTemplateControl extends React.Component {
     }
 
     let itemButton = null
+    const itemProps = {}
     if (this.props.isRemoveStateActive) {
-      itemButton = (
-        <span
-          className={removeClasses}
-          onClick={handleRemoveTemplate}
-          title={localizations.removePlaceholder.replace('%', name)}
-        />
-      )
+      if (roleManager.can('settings_templates', roleManager.defaultTrue())) {
+        itemButton = (
+          <span
+            className={removeClasses}
+            onClick={handleRemoveTemplate}
+            title={localizations.removePlaceholder.replace('%', name)}
+          />
+        )
+      } else {
+        itemProps.style = {
+          cursor: 'not-allowed'
+        }
+      }
     } else {
       itemButton = (
         <span
@@ -111,7 +119,7 @@ export default class HubTemplateControl extends React.Component {
               src={thumbnail}
               alt={name}
             />
-            <span className={overlayClasses}>
+            <span className={overlayClasses} {...itemProps}>
               {itemButton}
               <span className={spinnerClasses} />
             </span>
